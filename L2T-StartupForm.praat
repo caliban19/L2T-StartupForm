@@ -61,6 +61,7 @@ procedure praat_activities
   .check$          = "Check a segmented TextGrid"
   .transcribe$     = "Transcribe a recording"
   .calibrate$      = "Calibrate transcriptions"
+  .add_place$      = "Add place-transcription to RWR TP1 turbulence tags"
   .tag_turbulence$ = "Tag turbulence events"
   .tag_burst$      = "Tag burst events"
   # Gather the string constants into a vector.
@@ -68,9 +69,10 @@ procedure praat_activities
   .slot2$ = .check$
   .slot3$ = .transcribe$
   .slot4$ = .calibrate$
-  .slot5$ = .tag_turbulence$
-  .slot6$ = .tag_burst$
-  .length = 6
+  .slot5$ = .add_place$
+  .slot6$ = .tag_turbulence$
+  .slot7$ = .tag_burst$
+  .length = 7
 endproc
 
 
