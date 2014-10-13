@@ -2,6 +2,7 @@
 
 procedure workstations
   # Define string constants for each workstation.
+  .default$		= "Default"
   .waisman$      = "Waisman Lab"
   .shevlin$      = "Shevlin Hall Lab"
   .mac_rdc$      = "Mac via RDC"
@@ -17,19 +18,20 @@ procedure workstations
   .reidy_local$ = "Reidy (Local)"
   .other$       = "Other"
   # Gather the string constants into a vector.
-  .slot1$  = .waisman$
-  .slot2$  = .shevlin$
-  .slot3$  = .mac_rdc$
-  .slot4$  = .mac_vpn$
-  .slot5$  = .beckman$
-  .slot6$  = .reidy_vpn$
-  .slot7$  = .reidy_split$
-  .slot8$  = .hannele$
-  .slot9$  = .rose_vpn$
-  .slot10$ = .rose_split$
-  .slot11$ = .allie_laptop$
-  .slot12$ = .other$
-  .length  = 12
+  .slot1$  = .default$
+  .slot2$ = .waisman$
+  .slot3$  = .shevlin$
+  .slot4$  = .mac_rdc$
+  .slot5$  = .mac_vpn$
+  .slot6$  = .beckman$
+  .slot7$  = .reidy_vpn$
+  .slot8$  = .reidy_split$
+  .slot9$  = .hannele$
+  .slot10$  = .rose_vpn$
+  .slot11$ = .rose_split$
+  .slot12$ = .allie_laptop$
+  .slot13$ = .other$
+  .length  = 13
 endproc
 
 
@@ -82,7 +84,7 @@ procedure display_vector_as_options: .vector$
   if   .vector$ == "workstations"
          .comment$    = "Please select your workstation from the menu below."
          .menu_title$ = "Workstation"
-         .default     = 2
+         .default     = 1
   elif .vector$ == "experimental_tasks"
          .comment$    = "Please select the experimental task from the menu below."
          .menu_title$ = "Experimental task"
@@ -140,7 +142,12 @@ procedure session_parameters
   .activity$           = activity$
   # Local variable for the path to <Tier2>/DataAnalysis on the filesystem 
   # of the [.workstation$].
-  if .workstation$ == workstations.waisman$
+  if .workstation$ == workstations.default$
+    # Default setup...
+    .analysis_directory$ = "L:/DataAnalysis"
+     .dirLength = length (defaultDirectory$) - (36 + length(.experimental_task$))
+    .analysis_directory$ = left$(defaultDirectory$, .dirLength)
+  elif .workstation$ == workstations.waisman$
     # Waisman Lab (UW) setup...
     .analysis_directory$ = "L:/DataAnalysis"
   elif .workstation$ == workstations.shevlin$
@@ -182,6 +189,3 @@ procedure session_parameters
     .experiment_directory$ = ""
   endif
 endproc
-
-
-
