@@ -1,22 +1,13 @@
-if !variableExists("defaulInitials$")
-	defaultInitials$ = ""
-endif
+your_initials$ = ""
+workstation$ = "Default"
+participant_number$ = ""
 
-if !variableExists("defaultParticipantID$")
-	defaultParticipantID$ = ""
-endif
-
-if !variableExists("defaultTestwave")
-	defaultTestwave = 1
-endif
-
-if !variableExists("defaultExpTask")
-	defaultExpTask = 1
-endif
-
-if !variableExists("defaultActivity")
-	defaultActivity = 1
-endif
+defaultTestwave = 1
+defaultExpTask = 1
+defaultActivity = 1
+defaultRWRPerceptionExperiment = 1
+defaultRWRPerceptionActivity = 1
+loadStartUpForm = 1
 
 procedure workstations
 	# Define vector of workstations.
@@ -64,9 +55,31 @@ procedure praat_activities
 	.slot$ [5] = "Add place-transcription to RWR TP1 turbulence tags"
 	.slot$ [6] = "Tag turbulence events"
 	.slot$ [7] = "Tag burst events"
-	.slot$ [8] = "Other"
+	.slot$ [8] = "Prep RWR_Perception stimuli"
+	.slot$ [9] = "Other"
 
-	.length = 8
+	.length = 9
+endproc
+
+procedure rwr_perception_experiments
+	# Define the vector of experiment names.
+	.slot$ [1]= "TP2_SibilantGoodness_VAS"
+	.slot$ [2] = "TP1_t-k_VAS"
+	.slot$ [3] = "TP2_S-SH_VAS"
+	.slot$ [4] = "TP2_ObstruentsGender_VAS"
+
+	.length = 4
+endproc
+
+procedure rwr_perception_activities
+	# Define vector of activities in Praat.
+	.slot$ [1] = "Define word/CV boundaries for candidate stimuli"
+	.slot$ [2] = "Check a boundary-tagged stimulus TextGrid"
+	.slot$ [3] = "Extract audio files for candidate stimuli"
+	.slot$ [4] = "Listen to all extracted stimulus files"
+	.slot$ [5] = "Other"
+
+	.length = 5
 endproc
 
 procedure display_vector_as_options: .vector$, .default
@@ -84,6 +97,12 @@ procedure display_vector_as_options: .vector$, .default
 	elif .vector$ == "praat_activities"
 		.comment$ = "What would you like to do?"
 		.menu_title$ = "Activity"
+	elif .vector$ == "rwr_perception_experiments"
+		.comment$ = "For which experiment?"
+		.menu_title$ = "rwr_perception_experiment"
+	elif .vector$ == "rwr_perception_activities"
+		.comment$ = "How would you like to prep the stimuli?"
+		.menu_title$ = "rwr_perception_activity"
 	endif
 	# Call the procedure named by .vector$
 	@'.vector$'
@@ -96,30 +115,30 @@ procedure display_vector_as_options: .vector$, .default
 endproc
 
 procedure session_parameters
-
-	beginPause ("Hi, How Are You?")
-		# Prompt the user to enter her initials.
-		# --> Global variable [your_initials$].
-		comment ("Please enter your initials in the field below.")
-		word ("Your initials", defaultInitials$)
-		# Prompt the user to enter the participant's ID number.
-		# --> Global variable [participant_ID$].
-		comment ("Please enter the participant's ID number in the field below.")
-		word ("Participant number", defaultParticipantID$)
-		# Prompt the user to select her workstation.
-		# --> Global variable [workstation$].
-		@display_vector_as_options: "workstations", 1
-		# Prompt the user to select the experimental task.
-		# --> Global variable [experimental_task$]. 
-		@display_vector_as_options: "experimental_tasks", defaultExpTask
-		# Prompt the user to select the testwave.
-		# --> Global variable [testwave$].
-		@display_vector_as_options: "testwaves", defaultTestwave
-		# Prompt the user to select her activity.
-		# --> Global variable [activity$].
-		@display_vector_as_options: "praat_activities", defaultActivity
-	endPause ("Quit", "Continue", 2)
-
+	if loadStartUpForm
+		beginPause ("Hi, How Are You?")
+			# Prompt the user to enter initials.
+			# --> Global variable [your_initials$].
+			comment ("Please enter your initials in the field below.")
+			word ("Your initials", your_initials$)
+			# Prompt the user to enter the participant's ID number.
+			# --> Global variable [participant_ID$].
+			comment ("Please enter the participant's ID number in the field below.")
+			word ("Participant number", participant_number$)
+			# Prompt the user to select workstation.
+			# --> Global variable [workstation$].
+			@display_vector_as_options: "workstations", 1
+			# Prompt the user to select the experimental task.
+			# --> Global variable [experimental_task$]. 
+			@display_vector_as_options: "experimental_tasks", defaultExpTask
+			# Prompt the user to select the testwave.
+			# --> Global variable [testwave$].
+			@display_vector_as_options: "testwaves", defaultTestwave
+			# Prompt the user to select her activity.
+			# --> Global variable [activity$].
+			@display_vector_as_options: "praat_activities", defaultActivity
+		endPause ("Quit", "Continue", 2)
+	endif
 	# Bind all the global variables created by the form to
 	# local variables of [session_parameters].
 	.initials$ = your_initials$
@@ -129,44 +148,7 @@ procedure session_parameters
 	.participant_number$ = participant_number$
 	.activity$ = activity$
 
-	# Local variable for the path to <Tier2>/DataAnalysis on the filesystem 
-	# of the [.workstation$].
-	if .workstation$ == workstations.slot$ [1]
-		# Default setup. 14 = the string length for "\PraatScripts\"
-		.dirLength = rindex_regex (defaultDirectory$, "/|\\") - 14
-		.analysis_directory$ = left$(defaultDirectory$, .dirLength)
-	elif .workstation$ ==  workstations.slot$ [2]
-		# Waisman Lab (UW) setup...
-		.analysis_directory$ = "L:/DataAnalysis"
-	elif .workstation$ == workstations.slot$ [3]
-		# Shevlin Hall (UMN) setup...count_nwr_wordlist_structurescount_nwr_wordlist_structures
-		.analysis_directory$ = "//l2t.cla.umn.edu/tier2/DataAnalysis"
-	elif .workstation$ == workstations.slot$ [4]
-		.analysis_directory$ = "I:/DataAnalysis"
-	elif .workstation$ == workstations.slot$ [5]
-		.analysis_directory$ = "/Volumes/tier2/DataAnalysis"
-	elif .workstation$ == workstations.slot$ [6]
-		# Mary's set-up, where audio is accessed locally...
-		.analysis_directory$ = "/Volumes/tier2/DataAnalysis"
-	elif .workstation$ == workstations.slot$ [7]
-		# Pat's setup where the sharepoint is accessed through a VPN connection...
-		.analysis_directory$ = "/Volumes/tier2/DataAnalysis"
-	elif .workstation$ == workstations.slot$ [8]
-		# Pat's setup where the audio is accessed locally, but the other data
-		# are accessed through a VPN connection...
-		.analysis_directory$ = "/Volumes/tier2/DataAnalysis"
-	elif .workstation$ == workstations.slot$ [9]
-		.analysis_directory$ = "Z:/DataAnalysis"
-	elif .workstation$ == workstations.slot$ [10]
-		.analysis_directory$ = "/Volumes/tier2/DataAnalysis"
-	elif .workstation$ == workstations.slot$ [11]
-		.analysis_directory$ = "/Volumes/tier2/DataAnalysis"
-	elif .workstation$ == workstations.slot$ [12]
-		.analysis_directory$ = "/Volumes/tier2/DataAnalysis"
-	elif .workstation$ == workstations.slot$ [13]
-		# Some previously un-encountered setup...
-		.analysis_directory$ = ""
-	endif
+	@setWorkstation: .workstation$
 
 	# Local variable for the path to the directory of the experimental condition,
 	# i.e. the pair of experimental task and testwave.
@@ -177,4 +159,90 @@ procedure session_parameters
 	else
 		.experiment_directory$ = ""
 	endif
+
+	if .activity$ == "Prep RWR_Perception stimuli"
+		beginPause ("Which RWR_Perception Experiment?")
+			# Prompt the user to enter initials.
+			# --> Global variable [your_initials$].
+			comment ("Please enter your initials in the field below.")
+			word ("Your initials", your_initials$)
+			# --> Global variable [workstation$].
+			@display_vector_as_options: "workstations", 1
+			# Prompt the user to select the experiment name.
+			# --> Global variable [rwr_perception_experiment$]. 
+			@display_vector_as_options: "rwr_perception_experiments", defaultRWRPerceptionExperiment
+			# Prompt the user to select activity.
+			# --> Global variable [rwr_perception_activity$].
+			@display_vector_as_options: "rwr_perception_activities", defaultRWRPerceptionActivity
+			# Prompt the user to enter the participant's ID number.
+			# --> Global variable [participant_ID$].
+			comment ("If you want to analyze a specific participant, enter ID.")
+			word ("Participant number", participant_number$)
+		endPause ("Quit", "Continue", 2)
+
+		.initials$ = your_initials$
+		.workstation$ = workstation$
+		.participant_number$ = participant_number$
+		@setWorkstation: .workstation$
+
+		.rwr_perception_experiment$ = rwr_perception_experiment$
+		.rwr_perception_activity$ = rwr_perception_activity$
+
+		@testwaves
+		.whichTimePoint$ = mid$ (.rwr_perception_experiment$, 3, 1)
+		.testwave$ = testwaves.slot$ ['.whichTimePoint$']
+
+		# Local variable for the path to the perception experiment directory for the 
+		# experiment -- i.e. the subdirectory under .../DataCollection/RWR_PerceptionExperiments
+		# where the relevant Stimuli directory and StimPrep directory are.
+		if (.analysis_directory$ <> "")
+			.rwr_perception_experiment_directory$ = .analysis_directory$ - "Analysis" + 
+				... "Collection/RWR_PerceptionExperiments/" + .rwr_perception_experiment$
+		else
+			.rwr_perception_experiment_directory$ = ""
+		endif
+	endif
+endproc
+
+procedure setWorkstation .workstation$
+	# Local variable for the path to <Tier2>/DataAnalysis on the filesystem 
+	# of the [.workstation$].
+	if .workstation$ == "Default"
+		# Default setup. 14 = the string length for "\PraatScripts\"
+		.dirLength = rindex_regex (defaultDirectory$, "/|\\") - 14
+		.analysis_directory$ = left$(defaultDirectory$, .dirLength)
+	elif .workstation$ ==  "Waisman Lab"
+		# Waisman Lab (UW) setup...
+		.analysis_directory$ = "L:/DataAnalysis"
+	elif .workstation$ == "Shevlin Hall Lab"
+		# Shevlin Hall (UMN) setup...count_nwr_wordlist_structurescount_nwr_wordlist_structures
+		.analysis_directory$ = "//l2t.cla.umn.edu/tier2/DataAnalysis"
+	elif .workstation$ == "Mac via RDC"
+		.analysis_directory$ = "I:/DataAnalysis"
+	elif .workstation$ == "Mac via VPN"
+		.analysis_directory$ = "/Volumes/tier2/DataAnalysis"
+	elif .workstation$ == "Beckman"
+		# Mary's set-up, where audio is accessed locally...
+		.analysis_directory$ = "/Volumes/tier2/DataAnalysis"
+	elif .workstation$ == "Reidy (VPN)"
+		# Pat's setup where the sharepoint is accessed through a VPN connection...
+		.analysis_directory$ = "/Volumes/tier2/DataAnalysis"
+	elif .workstation$ == "Reidy (Split)"
+		# Pat's setup where the audio is accessed locally, but the other data
+		# are accessed through a VPN connection...
+		.analysis_directory$ = "/Volumes/tier2/DataAnalysis"
+	elif .workstation$ == "Hannele"
+		.analysis_directory$ = "Z:/DataAnalysis"
+	elif .workstation$ == "Rose (VPN)"
+		.analysis_directory$ = "/Volumes/tier2/DataAnalysis"
+	elif .workstation$ == "Rose (Split)"
+		.analysis_directory$ = "/Volumes/tier2/DataAnalysis"
+	elif .workstation$ == "Allie (Laptop)"
+		.analysis_directory$ = "/Volumes/tier2/DataAnalysis"
+	elif .workstation$ == "Other"
+		# Some previously un-encountered setup...
+		.analysis_directory$ = ""
+	endif
+
+	session_parameters.analysis_directory$ = .analysis_directory$
 endproc

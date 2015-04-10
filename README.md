@@ -1,4 +1,4 @@
-L2T-StartupForm
-===============
+L2T-SegmentationTextGrid
+========================
 
-Procedures for the start up GUI that lets the tagger specify the recording type, test wave, PID, tagging task, etc.
+Procedures for creating, loading, and manipulating Segmentation TextGrids
