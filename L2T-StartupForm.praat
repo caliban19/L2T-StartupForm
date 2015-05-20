@@ -1,6 +1,10 @@
 your_initials$ = ""
+experimental_task$ = ""
+testwave$ = ""
 workstation$ = "Default"
 participant_number$ = ""
+activity$ = ""
+trial$ = ""
 
 defaultTestwave = 1
 defaultExpTask = 1
@@ -56,9 +60,11 @@ procedure praat_activities
 	.slot$ [6] = "Tag turbulence events"
 	.slot$ [7] = "Tag burst events"
 	.slot$ [8] = "Prep RWR_Perception stimuli"
-	.slot$ [9] = "Other"
+	.slot$ [9] = "Check a Transcribed TextGrid"
+	.slot$ [10] = "Correct a Transcribed TextGrid"
+	.slot$ [11] = "Other"
 
-	.length = 9
+	.length = 11
 endproc
 
 procedure rwr_perception_experiments
@@ -139,6 +145,36 @@ procedure session_parameters
 			@display_vector_as_options: "praat_activities", defaultActivity
 		endPause ("Quit", "Continue", 2)
 	endif
+
+	if activity$ == "Correct a Transcribed TextGrid"
+		beginPause ("Correct a Transcribed TextGrid")
+			# Prompt the user to enter initials.
+			# --> Global variable [your_initials$].
+			comment ("Please enter your initials in the field below.")
+			word ("Your initials", your_initials$)
+			# Prompt the user to enter the participant's ID number.
+			# --> Global variable [participant_ID$].
+			comment ("Please enter the participant's ID number in the field below.")
+			word ("Participant number", participant_number$)
+			# Prompt the user to select the experimental task.
+			# --> Global variable [experimental_task$]. 
+			@display_vector_as_options: "experimental_tasks", defaultExpTask
+			# Prompt the user to select the testwave.
+			# --> Global variable [testwave$].
+			@display_vector_as_options: "testwaves", defaultTestwave
+			# Prompt the user to enter the trial to correct.
+			# --> Global variable [trial$].
+			comment ("Please enter which trial to correct in the field below.")
+			comment ("(GFTA: Trial = Word Orthography, NWR: Trial = Test #)")
+			word ("trial", trial$)
+			# --> Global variable [workstation$].
+			@display_vector_as_options: "workstations", 1
+		endPause ("Quit", "Continue", 2)
+
+		.trial$ = trial$
+	endif
+
+
 	# Bind all the global variables created by the form to
 	# local variables of [session_parameters].
 	.initials$ = your_initials$
@@ -177,16 +213,12 @@ procedure session_parameters
 			# Prompt the user to enter the participant's ID number.
 			# --> Global variable [participant_ID$].
 			comment ("If you want to analyze a specific participant, enter ID.")
-			word ("Participant number", participant_number$)
-		endPause ("Quit", "Continue", 2)
+			word ("Participant number", participant_number$)		endPause ("Quit", "Continue", 2)
 
 		.initials$ = your_initials$
 		.workstation$ = workstation$
 		.participant_number$ = participant_number$
 		@setWorkstation: .workstation$
-
-		.rwr_perception_experiment$ = rwr_perception_experiment$
-		.rwr_perception_activity$ = rwr_perception_activity$
 
 		@testwaves
 		.whichTimePoint$ = mid$ (.rwr_perception_experiment$, 3, 1)
